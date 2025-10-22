@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!--
+        ========================================================================
+        BUDGET ANALYSIS WIZARD - Analyze Budget Performance
+        ========================================================================
+
+        Pattern Used: patterns/views/wizard.xml
+
+        Purpose: Interactive wizard to analyze budget vs actual spending
+        -->
+
+        <!-- ================================================================ -->
+        <!-- FORM VIEW -->
+        <!-- ================================================================ -->
+
+        <record id="eo_cfp_wizard_budget_form" model="ir.ui.view">
+            <field name="name">eo.cfp.wizard.budget.form</field>
+            <field name="model">eo.cfp.wizard.budget</field>
+            <field name="arch" type="xml">
+                <form string="Budget Analysis" version="7.0">
+                    <group>
+                        <group string="Analysis Period">
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+
+                        <group string="Display Options">
+                            <field name="sort_by"/>
+                            <field name="show_details"/>
+                        </group>
+                    </group>
+
+                    <group string="Filters">
+                        <group>
+                            <field name="category_ids" widget="many2many_tags"
+                                   placeholder="All categories"/>
+                            <field name="state"/>
+                        </group>
+                        <group>
+                            <field name="variance_filter"/>
+                        </group>
+                    </group>
+
+                    <group string="Analysis Information">
+                        <p>
+                            This wizard analyzes budget performance by comparing:
+                        </p>
+                        <ul>
+                            <li><b>Planned Amount:</b> Total budgeted amount</li>
+                            <li><b>Used Amount:</b> Actual spending from planned items</li>
+                            <li><b>Remaining Amount:</b> Budget left (or overspending)</li>
+                            <li><b>Variance Percent:</b> How much over/under budget</li>
+                        </ul>
+                        <p>
+                            <b>Variance Filter:</b>
+                        </p>
+                        <ul>
+                            <li><b>Over Budget:</b> Spending exceeded planned amount (remaining &lt; 0)</li>
+                            <li><b>Under Budget:</b> Spending below planned amount (remaining &gt; 0)</li>
+                            <li><b>Within 90 Percent:</b> Used at least 90 percent of budget</li>
+                        </ul>
+                    </group>
+
+                    <footer>
+                        <button name="action_analyze_budget" string="Analyze Budget"
+                                type="object" class="oe_highlight"/>
+                        <button name="action_cancel" string="Cancel"
+                                type="object" class="oe_link"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- ================================================================ -->
+        <!-- ACTION -->
+        <!-- ================================================================ -->
+
+        <record id="action_eo_cfp_wizard_budget" model="ir.actions.act_window">
+            <field name="name">Budget Analysis</field>
+            <field name="res_model">eo.cfp.wizard.budget</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="eo_cfp_wizard_budget_form"/>
+            <field name="target">new</field>
+            <field name="type">ir.actions.act_window</field>
+        </record>
+
+        <!-- Menu item defined in views/eo_cfp_menu.xml -->
+
+    </data>
+</openerp>

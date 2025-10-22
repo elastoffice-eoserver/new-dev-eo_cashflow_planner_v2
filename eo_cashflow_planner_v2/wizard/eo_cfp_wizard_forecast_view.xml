@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!--
+        ========================================================================
+        FORECAST REPORT WIZARD - Generate Cashflow Forecast
+        ========================================================================
+
+        Pattern Used: patterns/views/wizard.xml
+
+        Purpose: Interactive wizard to generate cashflow forecast
+        -->
+
+        <!-- ================================================================ -->
+        <!-- FORM VIEW -->
+        <!-- ================================================================ -->
+
+        <record id="eo_cfp_wizard_forecast_form" model="ir.ui.view">
+            <field name="name">eo.cfp.wizard.forecast.form</field>
+            <field name="model">eo.cfp.wizard.forecast</field>
+            <field name="arch" type="xml">
+                <form string="Cashflow Forecast" version="7.0">
+                    <group>
+                        <group string="Forecast Period">
+                            <field name="date_from"/>
+                            <field name="forecast_months"
+                                   on_change="onchange_forecast_months(date_from, forecast_months, context)"/>
+                            <field name="date_to"/>
+                        </group>
+
+                        <group string="Options">
+                            <field name="group_by"/>
+                            <field name="opening_balance" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"/>
+                            <field name="currency_id" groups="base.group_multi_currency"/>
+                        </group>
+                    </group>
+
+                    <group string="Filters">
+                        <field name="category_ids" widget="many2many_tags"
+                               placeholder="All categories"/>
+                        <field name="include_planned"/>
+                        <field name="include_recurring"/>
+                    </group>
+
+                    <group string="Report Information">
+                        <p>
+                            This wizard generates a cashflow forecast based on:
+                        </p>
+                        <ul>
+                            <li><b>Planned Items:</b> Already entered cashflow items</li>
+                            <li><b>Recurring Items:</b> Automatically generated future items</li>
+                        </ul>
+                        <p>
+                            The forecast shows expected income, payments, and running balance.
+                        </p>
+                    </group>
+
+                    <footer>
+                        <button name="action_generate_forecast" string="Generate Forecast"
+                                type="object" class="oe_highlight"/>
+                        <button name="action_cancel" string="Cancel"
+                                type="object" class="oe_link"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- ================================================================ -->
+        <!-- ACTION -->
+        <!-- ================================================================ -->
+
+        <record id="action_eo_cfp_wizard_forecast" model="ir.actions.act_window">
+            <field name="name">Cashflow Forecast</field>
+            <field name="res_model">eo.cfp.wizard.forecast</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="eo_cfp_wizard_forecast_form"/>
+            <field name="target">new</field>
+            <field name="type">ir.actions.act_window</field>
+        </record>
+
+        <!-- Menu item defined in views/eo_cfp_menu.xml -->
+
+    </data>
+</openerp>

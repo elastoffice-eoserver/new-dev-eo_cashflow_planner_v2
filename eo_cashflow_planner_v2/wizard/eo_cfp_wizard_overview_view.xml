@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!--
+        ========================================================================
+        CASHFLOW OVERVIEW WIZARD
+        ========================================================================
+
+        Pattern Used: patterns/views/wizard.xml
+
+        Purpose: Interactive wizard to show cashflow items in a date range
+        -->
+
+        <!-- ================================================================ -->
+        <!-- WIZARD FORM VIEW -->
+        <!-- ================================================================ -->
+
+        <record id="eo_cfp_wizard_overview_form" model="ir.ui.view">
+            <field name="name">eo.cfp.wizard.overview.form</field>
+            <field name="model">eo.cfp.wizard.overview</field>
+            <field name="arch" type="xml">
+                <form string="Cashflow Overview" version="7.0">
+                    <group>
+                        <group>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group>
+                            <field name="state"/>
+                            <field name="category_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+
+                    <footer>
+                        <button name="action_show_overview" string="Show Overview"
+                                type="object" class="oe_highlight"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- ================================================================ -->
+        <!-- WIZARD ACTION -->
+        <!-- ================================================================ -->
+
+        <record id="action_eo_cfp_wizard_overview" model="ir.actions.act_window">
+            <field name="name">Cashflow Overview</field>
+            <field name="res_model">eo.cfp.wizard.overview</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="eo_cfp_wizard_overview_form"/>
+            <field name="target">new</field>
+        </record>
+
+        <!-- Menu item defined in views/eo_cfp_menu.xml -->
+
+    </data>
+</openerp>

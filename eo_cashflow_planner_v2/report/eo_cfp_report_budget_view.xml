@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!-- ================================================================ -->
+        <!-- BUDGET ANALYSIS REPORT - Form View -->
+        <!-- ================================================================ -->
+
+        <record id="eo_cfp_report_budget_form_view" model="ir.ui.view">
+            <field name="name">eo.cfp.report.budget.form</field>
+            <field name="model">eo.cfp.report.budget</field>
+            <field name="arch" type="xml">
+                <form string="Budget Analysis" version="7.0" create="false">
+
+                    <!-- Header / Filter Section -->
+                    <group col="8">
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                        <label string="" colspan="4"/>
+
+                        <field name="category_id" style="width: 200px;"/>
+                        <field name="state_filter" style="width: 120px;"/>
+                        <field name="variance_filter" style="width: 150px;"/>
+                    </group>
+
+                    <!-- Summary Section -->
+                    <group string="Summary" col="6">
+                        <field name="total_planned" readonly="1"/>
+                        <field name="total_used" readonly="1"/>
+                        <field name="total_remaining" readonly="1"/>
+                        <label string="" colspan="6"/>
+                        <button name="display_items" type="object" string="Load Items" class="oe_highlight"/>
+                        <button string="Export to XLS"
+                                type="action"
+                                name="%(eo_cfp_report_budget_xls)d"
+                                icon="gtk-save-as"/>
+                    </group>
+
+                    <!-- Results Section -->
+                    <group>
+                        <notebook>
+                            <page string="Budget Analysis">
+                                <field name="line_ids" nolabel="1">
+                                    <tree string="Budget Analysis" create="false"
+                                          colors="red:remaining_amount&lt;0;orange:usage_percent&gt;=90;green:usage_percent&lt;50">
+                                        <field name="name"/>
+                                        <field name="category_id"/>
+                                        <field name="period_start"/>
+                                        <field name="period_end"/>
+                                        <field name="planned_amount" sum="Total Planned"/>
+                                        <field name="used_amount" sum="Total Used"/>
+                                        <field name="remaining_amount" sum="Total Remaining"/>
+                                        <field name="usage_percent"/>
+                                        <field name="state"/>
+                                        <button name="button_jump_to_budget" type="object"
+                                                string="View Budget" icon="gtk-jump-to"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <!-- ================================================================ -->
+        <!-- ACTION -->
+        <!-- ================================================================ -->
+
+        <record id="action_eo_cfp_report_budget" model="ir.actions.act_window">
+            <field name="name">Budget Analysis</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">eo.cfp.report.budget</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">current</field>
+            <field name="view_id" ref="eo_cfp_report_budget_form_view"/>
+        </record>
+
+        <!-- ================================================================ -->
+        <!-- REPORT LINE - Form View -->
+        <!-- ================================================================ -->
+
+        <record id="eo_cfp_report_budget_line_form_view" model="ir.ui.view">
+            <field name="name">eo.cfp.report.budget.line.form</field>
+            <field name="model">eo.cfp.report.budget.line</field>
+            <field name="arch" type="xml">
+                <form string="Budget Analysis" version="7.0" create="false" edit="false" delete="false">
+                    <group col="4">
+                        <field name="name"/>
+                        <field name="category_id"/>
+                        <field name="period_start"/>
+                        <field name="period_end"/>
+                        <field name="planned_amount"/>
+                        <field name="used_amount"/>
+                        <field name="remaining_amount"/>
+                        <field name="usage_percent"/>
+                        <field name="state"/>
+                    </group>
+                    <group>
+                        <button name="button_jump_to_budget" type="object"
+                                string="Go to Budget" class="oe_highlight"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</openerp>

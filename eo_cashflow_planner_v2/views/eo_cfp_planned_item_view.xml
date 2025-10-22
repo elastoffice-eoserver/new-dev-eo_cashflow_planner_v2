@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!--
+        ========================================================================
+        PLANNED ITEM VIEWS - Cashflow Planning Items
+        ========================================================================
+
+        Pattern Used: patterns/views/form-view.xml
+        Pattern Used: patterns/views/tree-view.xml
+        Pattern Used: patterns/views/search-view.xml
+        Pattern Used: patterns/views/menu-action.xml
+
+        Purpose: CRUD interface for planned cashflow items (income/payments)
+        -->
+
+        <!-- ================================================================ -->
+        <!-- FORM VIEW -->
+        <!-- ================================================================ -->
+
+        <record id="eo_cfp_planned_item_form_view" model="ir.ui.view">
+            <field name="name">eo.cfp.planned.item.form</field>
+            <field name="model">eo.cfp.planned.item</field>
+            <field name="arch" type="xml">
+                <form string="Planned Item" version="7.0">
+                    <header>
+                        <!-- State workflow buttons -->
+                        <button name="action_mark_as_paid" string="Mark as Paid" type="object"
+                                states="planned" class="oe_highlight"/>
+                        <button name="action_cancel" string="Cancel" type="object"
+                                states="planned"/>
+                        <button name="action_set_to_planned" string="Reset to Planned" type="object"
+                                states="paid,cancelled"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="planned,paid"/>
+                    </header>
+
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only"/>
+                            <h1>
+                                <field name="name" placeholder="e.g. Customer Payment - Invoice INV/2025/001"/>
+                            </h1>
+                        </div>
+
+                        <group>
+                            <group>
+                                <field name="type" on_change="onchange_type(type, context)"/>
+                                <field name="category_id"
+                                       context="{'tree_view_ref': 'eo_cashflow_planner_v2.eo_cfp_category_tree_view'}"/>
+                                <field name="category_type" invisible="1"/>
+                                <field name="priority"/>
+                                <field name="active"/>
+                            </group>
+                            <group>
+                                <field name="planned_date"/>
+                                <field name="actual_date" attrs="{'readonly': [('state', '!=', 'paid')]}"/>
+                                <field name="amount" widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"/>
+                                <field name="signed_amount" widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"
+                                       readonly="1"/>
+                                <field name="currency_id" groups="base.group_multi_currency"/>
+                            </group>
+                        </group>
+
+                        <group string="Relations">
+                            <group>
+                                <field name="partner_id"
+                                       on_change="onchange_partner_id(partner_id, context)"/>
+                                <field name="budget_id"/>
+                            </group>
+                            <group>
+                                <field name="invoice_id"
+                                       on_change="onchange_invoice_id(invoice_id, context)"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Internal Notes">
+                                <field name="notes" placeholder="Additional information, payment terms, etc."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- ================================================================ -->
+        <!-- TREE VIEW -->
+        <!-- ================================================================ -->
+
+        <record id="eo_cfp_planned_item_tree_view" model="ir.ui.view">
+            <field name="name">eo.cfp.planned.item.tree</field>
+            <field name="model">eo.cfp.planned.item</field>
+            <field name="arch" type="xml">
+                <tree string="Planned Items"
+                      colors="blue:type=='income' and state=='planned';red:type=='payment' and state=='planned';green:state=='paid';gray:state=='cancelled' or active==False">
+                    <field name="planned_date"/>
+                    <field name="name"/>
+                    <field name="type"/>
+                    <field name="category_id"/>
+                    <field name="partner_id"/>
+                    <field name="amount" sum="Total Amount"/>
+                    <field name="signed_amount" sum="Net Cashflow"/>
+                    <field name="currency_id" groups="base.group_multi_currency"/>
+                    <field name="priority"/>
+                    <field name="state"/>
+                    <field name="active" invisible="1"/>
+                    <button name="action_mark_as_paid" string="Mark Paid" type="object"
+                            states="planned" icon="gtk-apply"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- ================================================================ -->
+        <!-- SEARCH VIEW -->
+        <!-- ================================================================ -->
+
+        <record id="eo_cfp_planned_item_search_view" model="ir.ui.view">
+            <field name="name">eo.cfp.planned.item.search</field>
+            <field name="model">eo.cfp.planned.item</field>
+            <field name="arch" type="xml">
+                <search string="Search Planned Items">
+                    <!-- Search fields -->
+                    <field name="name"
+                           filter_domain="['|', '|', ('name', 'ilike', self), ('notes', 'ilike', self), ('partner_id', 'ilike', self)]"/>
+                    <field name="category_id"/>
+                    <field name="partner_id"/>
+                    <field name="planned_date"/>
+
+                    <!-- Type Filters -->
+                    <filter string="Income" name="filter_income"
+                            domain="[('type', '=', 'income')]"
+                            icon="terp-camera_test"
+                            help="Income items"/>
+                    <filter string="Payment" name="filter_payment"
+                            domain="[('type', '=', 'payment')]"
+                            icon="terp-dolar"
+                            help="Payment items"/>
+
+                    <separator/>
+
+                    <!-- State Filters -->
+                    <filter string="Planned" name="filter_planned"
+                            domain="[('state', '=', 'planned')]"
+                            icon="terp-document-new"
+                            help="Items not yet paid"/>
+                    <filter string="Paid" name="filter_paid"
+                            domain="[('state', '=', 'paid')]"
+                            icon="terp-check"
+                            help="Items already paid"/>
+                    <filter string="Cancelled" name="filter_cancelled"
+                            domain="[('state', '=', 'cancelled')]"
+                            icon="terp-dialog-close"/>
+
+                    <separator/>
+
+                    <!-- Priority Filters -->
+                    <filter string="High Priority" name="filter_high"
+                            domain="[('priority', '=', 'high')]"
+                            icon="gtk-go-up"
+                            help="High priority items"/>
+                    <filter string="Medium Priority" name="filter_medium"
+                            domain="[('priority', '=', 'medium')]"
+                            help="Medium priority items"/>
+                    <filter string="Low Priority" name="filter_low"
+                            domain="[('priority', '=', 'low')]"
+                            icon="gtk-go-down"
+                            help="Low priority items"/>
+
+                    <separator/>
+
+                    <!-- Date Filters -->
+                    <filter string="Today" name="filter_today"
+                            domain="[('planned_date', '=', time.strftime('%%Y-%%m-%%d'))]"
+                            help="Items planned for today"/>
+                    <filter string="This Week" name="filter_this_week"
+                            domain="[('planned_date', '&gt;=', (context_today - datetime.timedelta(days=context_today.weekday())).strftime('%%Y-%%m-%%d')),
+                                     ('planned_date', '&lt;=', (context_today + datetime.timedelta(days=6-context_today.weekday())).strftime('%%Y-%%m-%%d'))]"
+                            help="Items planned for this week"/>
+                    <filter string="This Month" name="filter_this_month"
+                            domain="[('planned_date', '&gt;=', time.strftime('%%Y-%%m-01')),
+                                     ('planned_date', '&lt;=', (datetime.datetime.now() + relativedelta(day=31)).strftime('%%Y-%%m-%%d'))]"
+                            help="Items planned for this month"/>
+                    <filter string="Future" name="filter_future"
+                            domain="[('planned_date', '&gt;', time.strftime('%%Y-%%m-%%d'))]"
+                            help="Items planned in the future"/>
+                    <filter string="Past Due" name="filter_past_due"
+                            domain="[('planned_date', '&lt;', time.strftime('%%Y-%%m-%%d')), ('state', '=', 'planned')]"
+                            help="Planned items with past dates"/>
+
+                    <separator/>
+
+                    <!-- Other Filters -->
+                    <filter string="Active" name="filter_active"
+                            domain="[('active', '=', True)]"/>
+                    <filter string="Archived" name="filter_inactive"
+                            domain="[('active', '=', False)]"/>
+
+                    <separator/>
+
+                    <filter string="With Budget" name="filter_with_budget"
+                            domain="[('budget_id', '!=', False)]"
+                            help="Items linked to a budget"/>
+                    <filter string="With Invoice" name="filter_with_invoice"
+                            domain="[('invoice_id', '!=', False)]"
+                            help="Items linked to an invoice"/>
+
+                    <!-- Group By -->
+                    <group expand="0" string="Group By">
+                        <filter string="Type" name="group_type"
+                                context="{'group_by': 'type'}"/>
+                        <filter string="Category" name="group_category"
+                                context="{'group_by': 'category_id'}"/>
+                        <filter string="State" name="group_state"
+                                context="{'group_by': 'state'}"/>
+                        <filter string="Priority" name="group_priority"
+                                context="{'group_by': 'priority'}"/>
+                        <filter string="Partner" name="group_partner"
+                                context="{'group_by': 'partner_id'}"/>
+                        <filter string="Planned Date" name="group_planned_date"
+                                context="{'group_by': 'planned_date'}"/>
+                        <filter string="Budget" name="group_budget"
+                                context="{'group_by': 'budget_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- ================================================================ -->
+        <!-- ACTION -->
+        <!-- ================================================================ -->
+
+        <record id="action_eo_cfp_planned_item" model="ir.actions.act_window">
+            <field name="name">Planned Items</field>
+            <field name="res_model">eo.cfp.planned.item</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="eo_cfp_planned_item_tree_view"/>
+            <field name="search_view_id" ref="eo_cfp_planned_item_search_view"/>
+            <field name="context">{'search_default_filter_active': 1, 'search_default_filter_planned': 1}</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to create a new planned item.
+                </p>
+                <p>
+                    Planned items represent individual cashflow transactions - both income (money coming in)
+                    and payments (money going out).
+                </p>
+                <p>
+                    Use planned items to track:
+                </p>
+                <ul>
+                    <li><b>Income:</b> Customer payments, sales revenue, interest income, etc.</li>
+                    <li><b>Payments:</b> Supplier payments, salaries, rent, utilities, etc.</li>
+                </ul>
+                <p>
+                    <b>Workflow:</b>
+                </p>
+                <ul>
+                    <li><b>Planned:</b> Expected transaction</li>
+                    <li><b>Paid:</b> Transaction completed</li>
+                    <li><b>Cancelled:</b> Transaction no longer expected</li>
+                </ul>
+            </field>
+        </record>
+
+        <!-- Menu item defined in views/eo_cfp_menu.xml -->
+
+    </data>
+</openerp>

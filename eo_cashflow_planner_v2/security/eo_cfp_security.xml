@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="0">
+
+        <!--
+        ========================================================================
+        SECURITY GROUPS - Role-Based Access Control
+        ========================================================================
+
+        Pattern Used: patterns/security/groups-users.xml
+
+        Three-tier security model:
+        1. User (Read-only): View cashflow data, generate reports
+        2. Manager: Create/edit planned items, manage categories
+        3. Director: Full access including budgets and sensitive data
+        -->
+
+        <!-- Category for grouping our security groups -->
+        <record id="module_category_eo_cashflow_planner" model="ir.module.category">
+            <field name="name">Cashflow Planning</field>
+            <field name="description">Manage cashflow planning and forecasting</field>
+            <field name="sequence">15</field>
+        </record>
+
+        <!-- Group 1: Cashflow User (Read-only) -->
+        <record id="group_eo_cfp_user" model="res.groups">
+            <field name="name">Cashflow User</field>
+            <field name="category_id" ref="module_category_eo_cashflow_planner"/>
+            <field name="comment">Read-only access to cashflow planning. Can view planned items, budgets, and generate reports but cannot create or modify data.</field>
+        </record>
+
+        <!-- Group 2: Cashflow Manager (Create/Edit) -->
+        <record id="group_eo_cfp_manager" model="res.groups">
+            <field name="name">Cashflow Manager</field>
+            <field name="category_id" ref="module_category_eo_cashflow_planner"/>
+            <field name="implied_ids" eval="[(4, ref('group_eo_cfp_user'))]"/>
+            <field name="comment">Can create and edit planned items, recurring items, and categories. Can approve planned items. Cannot manage budgets or access sensitive financial projections.</field>
+        </record>
+
+        <!-- Group 3: Cashflow Director (Full Access) -->
+        <record id="group_eo_cfp_director" model="res.groups">
+            <field name="name">Cashflow Director</field>
+            <field name="category_id" ref="module_category_eo_cashflow_planner"/>
+            <field name="implied_ids" eval="[(4, ref('group_eo_cfp_manager'))]"/>
+            <field name="comment">Full access to all cashflow planning features including budgets, forecasts, alerts, and sensitive financial data. Can configure system settings.</field>
+        </record>
+
+        <!--
+        ========================================================================
+        NOTES ON SECURITY MODEL
+        ========================================================================
+
+        Implied IDs Hierarchy:
+        - Director implies Manager implies User
+        - Users with Director role automatically get Manager and User permissions
+        - Users with Manager role automatically get User permissions
+
+        Next Steps (in ir.model.access.csv):
+        - Grant read access to all models for group_eo_cfp_user
+        - Grant read/write/create/unlink for group_eo_cfp_manager (except budgets)
+        - Grant full access to group_eo_cfp_director (including budgets)
+
+        Future Enhancement (Phase 8 - Record Rules):
+        - Multi-company record rules to isolate data by company
+        - Restrict draft/confirmed items to creator or manager
+        - Restrict approved items to directors only
+        -->
+
+    </data>
+</openerp>
